@@ -6,8 +6,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appstory.data.model.MyApp
+import com.example.appstory.data.model.SessionManager
 import com.example.appstory.data.model.StoryEntity
-import com.example.appstory.data.model.TokenManager
 import com.example.appstory.data.repository.StoryRepository
 import com.example.appstory.data.response.AddStoryResponse
 import com.example.appstory.utils.Resource
@@ -19,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StoryViewModel @Inject constructor(
-    private val repository: StoryRepository
+    private val repository: StoryRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _storyList = MutableLiveData<Resource<List<StoryEntity>>>()
@@ -32,7 +33,7 @@ class StoryViewModel @Inject constructor(
     val addStoryStatus: LiveData<Resource<AddStoryResponse>> get() = _addStoryStatus
 
     fun getAllStories(page: Int, size: Int) {
-        val token = TokenManager.getToken(MyApp.context)
+        val token = sessionManager.getAuthToken()
         if (token != null) {
             viewModelScope.launch {
                 repository.getAllStories(
@@ -55,7 +56,7 @@ class StoryViewModel @Inject constructor(
             try {
                 Log.d("ViewModel", "Getting story detail for ID: $storyId")
 
-                val token = TokenManager.getToken(MyApp.context)
+                val token = sessionManager.getAuthToken()
                 if (token.isNullOrEmpty()) {
                     _storyDetail.value = Resource.Error("Token is missing or expired")
                     return@launch
@@ -75,7 +76,7 @@ class StoryViewModel @Inject constructor(
 
     fun addStory(photo: MultipartBody.Part, description: RequestBody,
                  lat: RequestBody? = null, lon: RequestBody? = null) {
-        val token = TokenManager.getToken(MyApp.context)
+        val token = sessionManager.getAuthToken()
         if (token != null) {
             viewModelScope.launch {
                 _addStoryStatus.value = Resource.Loading()

@@ -29,7 +29,6 @@ class MyApp : Application(), Configuration.Provider {
         super.onCreate()
         masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
         context = applicationContext
-        Log.d("MyApp", "Application started with Hilt and WorkManager")
     }
 
 

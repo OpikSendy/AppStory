@@ -3,7 +3,9 @@ package com.example.appstory.data.repository
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.appstory.data.api.ApiService
+import com.example.appstory.data.model.SessionManager
 import com.example.appstory.data.model.StoryDao
 import com.example.appstory.data.model.StoryEntity
 import com.example.appstory.data.model.toStoryEntity
@@ -13,6 +15,7 @@ import com.example.appstory.data.response.AddStoryResponse
 import com.example.appstory.data.request.LoginResponse
 import com.example.appstory.data.request.RegisterResponse
 import com.example.appstory.utils.Resource
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -26,16 +29,31 @@ import javax.inject.Inject
 
 class StoryRepository @Inject constructor(
     private val apiService: ApiService,
-    private val storyDao: StoryDao
+    private val storyDao: StoryDao,
+    private val sessionManager: SessionManager
 ) {
 
     suspend fun registerUser(registerData: RegisterRequest): Resource<RegisterResponse> {
-        Log.d("Register Data", "Name: ${registerData.name}, Email: ${registerData.email}, Password: ${registerData.password}")
         return safeApiCall { apiService.registerUser(registerData) }
     }
 
     suspend fun loginUser(loginData: LoginRequest): Resource<LoginResponse> {
-        return safeApiCall { apiService.loginUser(loginData) }
+        return try {
+            val result = safeApiCall { apiService.loginUser(loginData) }
+
+            when (result) {
+                is Resource.Success -> {
+                    result.data?.loginResult?.token?.let { token ->
+                        sessionManager.saveAuthToken(token)
+                    }
+                    result
+                }
+                is Resource.Error -> result
+                is Resource.Loading -> result
+            }
+        } catch (e: Exception) {
+            Resource.Error("Login failed: ${e.localizedMessage}")
+        }
     }
 
     suspend fun addStory(
@@ -136,21 +154,45 @@ class StoryRepository @Inject constructor(
         }
     }
 
+    val isLoggedIn: LiveData<Boolean> = MutableLiveData(sessionManager.isLoggedIn())
 
-    private suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Resource<T> {
+    private suspend fun <T> safeApiCall(
+        apiCall: suspend () -> Response<T>
+    ): Resource<T> {
         return try {
             val response = apiCall()
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Resource.Success(it)
-                } ?: Resource.Error("Empty response body")
-            } else {
-                Resource.Error("API error: ${response.message()}")
+            when {
+                response.isSuccessful -> {
+                    response.body()?.let {
+                        Resource.Success(it)
+                    } ?: Resource.Error("Empty response body")
+                }
+                response.code() == 401 -> {
+                    sessionManager.clearSession()
+                    Resource.Error("Unauthorized access. Please login again.")
+                }
+                response.code() == 403 -> {
+                    Resource.Error("Access forbidden. Please check your credentials.")
+                }
+                else -> {
+                    val errorBody = response.errorBody()?.string()
+                    val errorMessage = try {
+                        Gson().fromJson(errorBody, ErrorResponse::class.java).message
+                    } catch (e: Exception) {
+                        response.message() ?: "Unknown error occurred"
+                    }
+                    Resource.Error("API error: $errorMessage")
+                }
             }
         } catch (e: IOException) {
-            Resource.Error("Network error: ${e.localizedMessage}")
+            Resource.Error("Network error: Please check your internet connection")
         } catch (e: Exception) {
             Resource.Error("Unexpected error: ${e.localizedMessage}")
         }
     }
+
+    data class ErrorResponse(
+        val message: String,
+        val status: Boolean
+    )
 }

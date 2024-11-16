@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appstory.data.model.MyApp
 import com.example.appstory.data.model.SessionManager
-import com.example.appstory.data.model.TokenManager
 import com.example.appstory.data.repository.StoryRepository
 import com.example.appstory.data.request.LoginRequest
 import com.example.appstory.data.request.RegisterRequest
@@ -32,8 +31,10 @@ class AuthViewModel @Inject constructor(
     private val _authState = MutableLiveData<Resource<String?>>()
     val authState: LiveData<Resource<String?>> = _authState
 
+    val isLoggedIn: LiveData<Boolean> = repository.isLoggedIn
+
     init {
-        val token = TokenManager.getToken(MyApp.context)
+        val token = sessionManager.getAuthToken()
         if (token != null) {
             _authState.value = Resource.Success(token)
         } else {
@@ -41,19 +42,14 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun login(email: String, password: String) {
+    fun loginUser(email: String, password: String) {
         viewModelScope.launch {
             _loginStatus.value = Resource.Loading()
             try {
                 val loginData = LoginRequest(email, password)
                 when (val response = repository.loginUser(loginData)) {
                     is Resource.Success -> {
-                        response.data?.loginResult?.token?.let { token ->
-                            sessionManager.saveAuthToken(token)
-                            _loginStatus.value = Resource.Success(response.data)
-                        } ?: run {
-                            _loginStatus.value = Resource.Error("Login failed: Token is missing")
-                        }
+                        _loginStatus.value = response
                     }
                     is Resource.Error -> {
                         _loginStatus.value = Resource.Error(response.message ?: "Login failed")

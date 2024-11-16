@@ -1,5 +1,6 @@
 package com.example.appstory.ui.password
 
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -62,7 +63,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
     private fun sendResetRequest(email: String) {
         binding.progressBar.visibility = View.VISIBLE
 
-        val apiService = Retrofit.instance
+        val apiService = Retrofit.getInstance(this)
         val call = apiService.sendResetPasswordLink(email)
 
         call.enqueue(object : Callback<ResetPasswordResponse> {

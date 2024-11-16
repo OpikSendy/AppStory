@@ -63,7 +63,6 @@
         android:layout_marginTop="16dp"
         android:hint="@string/email_hint"
         app:boxStrokeColor="@color/primaryColor"
-        app:endIconMode="clear_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/nameInputLayout">
@@ -86,12 +85,10 @@
         android:layout_marginTop="16dp"
         android:hint="@string/password_hint"
         app:boxStrokeColor="@color/primaryColor"
-        app:endIconMode="password_toggle"
         app:errorEnabled="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/emailInputLayout"
-        app:passwordToggleEnabled="true">
+        app:layout_constraintTop_toBottomOf="@id/emailInputLayout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edRegisterPassword"

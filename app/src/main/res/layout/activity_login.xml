@@ -54,26 +54,14 @@
             tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/passwordInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <com.example.appstory.ui.custom.PasswordInputView
+        android:id="@+id/passwordInputView"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:layout_marginTop="16dp"
-        android:hint="@string/password_hint"
-        app:boxStrokeColor="@color/primaryColor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/emailInputLayout">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/edLoginPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:textColor="@color/primaryTextColor"
-            tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
-    </com.google.android.material.textfield.TextInputLayout>
+        app:layout_constraintTop_toBottomOf="@id/emailInputLayout" />
 
     <CheckBox
         android:id="@+id/checkboxRememberMe"
@@ -83,7 +71,7 @@
         android:layout_marginTop="8dp"
         android:text="@string/remember_me"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/passwordInputLayout" />
+        app:layout_constraintTop_toBottomOf="@id/passwordInputView" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnLogin"

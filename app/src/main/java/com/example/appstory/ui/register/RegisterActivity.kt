@@ -1,12 +1,9 @@
 package com.example.appstory.ui.register
 
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -15,7 +12,6 @@ import com.example.appstory.R
 import com.example.appstory.data.request.RegisterResponse
 import com.example.appstory.databinding.ActivityRegisterBinding
 import com.example.appstory.ui.AuthViewModel
-import com.example.appstory.ui.login.LoginActivity
 import com.example.appstory.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -54,15 +50,12 @@ class RegisterActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-        binding.edRegisterPassword.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validatePassword(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
+        binding.passwordInputView.addTextChangedListener { text ->
+            validatePassword(text)
+        }
 
-        // Setup click listeners
+        binding.passwordInputView.setErrorMessage(getString(R.string.error_password_length))
+
         binding.btnRegister.setOnClickListener { attemptRegister() }
         binding.btnLogin.setOnClickListener {
             finish()
@@ -73,6 +66,7 @@ class RegisterActivity : AppCompatActivity() {
         authViewModel.registrationStatus.observe(this) { resource ->
             handleRegistrationStatus(resource)
         }
+        Toast.makeText(this, "Please regis here", Toast.LENGTH_SHORT).show()
     }
 
     private fun validateName(name: String): Boolean {
@@ -97,18 +91,19 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun validatePassword(password: String): Boolean {
         return if (password.length < 8) {
-            binding.edRegisterPassword.error = getString(R.string.error_password_length)
+            binding.passwordInputView.setErrorMessage(getString(R.string.error_password_length))
             false
         } else {
-            binding.edRegisterPassword.error = null
+            binding.passwordInputView.setErrorMessage(null)
             true
         }
     }
 
+
     private fun attemptRegister() {
         val name = binding.edRegisterName.text.toString().trim()
         val email = binding.edRegisterEmail.text.toString().trim()
-        val password = binding.edRegisterPassword.text.toString().trim()
+        val password = binding.passwordInputView.getText()
 
         if (validateName(name) && validateEmail(email) && validatePassword(password)) {
             authViewModel.registerUser(name, email, password)
@@ -138,7 +133,7 @@ class RegisterActivity : AppCompatActivity() {
         binding.apply {
             edRegisterName.isEnabled = enabled
             edRegisterEmail.isEnabled = enabled
-            edRegisterPassword.isEnabled = enabled
+            passwordInputView.isEnabled = enabled
             btnRegister.isEnabled = enabled
             btnLogin.isEnabled = enabled
         }
@@ -157,5 +152,3 @@ class RegisterActivity : AppCompatActivity() {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
     }
 }
-
-

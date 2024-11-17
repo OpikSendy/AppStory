@@ -6,10 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
-import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -51,13 +48,11 @@ class LoginActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-        binding.edLoginPassword.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validatePassword(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
+        binding.passwordInputView.addTextChangedListener { text ->
+            validatePassword(text)
+        }
+
+        binding.passwordInputView.setErrorMessage(getString(R.string.error_password_length))
 
         binding.btnLogin.setOnClickListener { attemptLogin() }
         binding.btnRegister.setOnClickListener {
@@ -94,17 +89,17 @@ class LoginActivity : AppCompatActivity() {
 
     private fun validatePassword(password: String): Boolean {
         return if (password.length < 8) {
-            binding.edLoginPassword.error = getString(R.string.error_password_length)
+            binding.passwordInputView.setErrorMessage(getString(R.string.error_password_length))
             false
         } else {
-            binding.edLoginPassword.error = null
+            binding.passwordInputView.setErrorMessage(null)
             true
         }
     }
 
     private fun attemptLogin() {
         val email = binding.edLoginEmail.text.toString().trim()
-        val password = binding.edLoginPassword.text.toString().trim()
+        val password = binding.passwordInputView.getText()
 
         if (validateEmail(email) && validatePassword(password)) {
             authViewModel.loginUser(email, password)
@@ -133,7 +128,7 @@ class LoginActivity : AppCompatActivity() {
     private fun toggleInputs(enabled: Boolean) {
         binding.apply {
             edLoginEmail.isEnabled = enabled
-            edLoginPassword.isEnabled = enabled
+            passwordInputView.isEnabled = enabled
             btnLogin.isEnabled = enabled
             btnRegister.isEnabled = enabled
             btnForgotPassword.isEnabled = enabled

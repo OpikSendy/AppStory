@@ -1,11 +1,8 @@
-@file:Suppress("DEPRECATION")
-
 package com.example.appstory.data.model
 
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.security.crypto.MasterKeys
 import androidx.work.Configuration

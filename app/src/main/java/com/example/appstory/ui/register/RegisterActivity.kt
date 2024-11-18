@@ -1,29 +1,32 @@
 package com.example.appstory.ui.register
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import com.example.appstory.R
 import com.example.appstory.data.request.RegisterResponse
 import com.example.appstory.databinding.ActivityRegisterBinding
 import com.example.appstory.ui.AuthViewModel
+import com.example.appstory.ui.custom.PasswordInputView
 import com.example.appstory.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class RegisterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegisterBinding
+    private lateinit var passwordInputView: PasswordInputView
     private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        passwordInputView = binding.passwordInputView
 
         setupViews()
         setupObservers()
@@ -34,29 +37,20 @@ class RegisterActivity : AppCompatActivity() {
             AnimationUtils.loadAnimation(this, R.anim.logo_animation)
         )
 
-        binding.edRegisterName.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validateName(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        binding.edRegisterEmail.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validateEmail(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        binding.passwordInputView.addTextChangedListener { text ->
-            validatePassword(text)
+        binding.edRegisterName.addTextChangedListener { text ->
+            validateName(text.toString())
         }
 
-        binding.passwordInputView.setErrorMessage(getString(R.string.error_password_length))
+        binding.edRegisterEmail.addTextChangedListener { text ->
+            validateEmail(text.toString())
+        }
+
+        passwordInputView.validateOnInit(getString(R.string.error_password_length))
+
+        passwordInputView.addTextChangedListener()
 
         binding.btnRegister.setOnClickListener { attemptRegister() }
+
         binding.btnLogin.setOnClickListener {
             finish()
         }
@@ -66,7 +60,7 @@ class RegisterActivity : AppCompatActivity() {
         authViewModel.registrationStatus.observe(this) { resource ->
             handleRegistrationStatus(resource)
         }
-        Toast.makeText(this, "Please regis here", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Please register here", Toast.LENGTH_SHORT).show()
     }
 
     private fun validateName(name: String): Boolean {
@@ -89,23 +83,12 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun validatePassword(password: String): Boolean {
-        return if (password.length < 8) {
-            binding.passwordInputView.setErrorMessage(getString(R.string.error_password_length))
-            false
-        } else {
-            binding.passwordInputView.setErrorMessage(null)
-            true
-        }
-    }
-
-
     private fun attemptRegister() {
         val name = binding.edRegisterName.text.toString().trim()
         val email = binding.edRegisterEmail.text.toString().trim()
-        val password = binding.passwordInputView.getText()
+        val password = passwordInputView.getText()
 
-        if (validateName(name) && validateEmail(email) && validatePassword(password)) {
+        if (validateName(name) && validateEmail(email) && passwordInputView.isValidPassword()) {
             authViewModel.registerUser(name, email, password)
         }
     }
@@ -152,3 +135,4 @@ class RegisterActivity : AppCompatActivity() {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
     }
 }
+

@@ -11,11 +11,13 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import com.example.appstory.MainActivity
 import com.example.appstory.R
 import com.example.appstory.data.request.LoginResponse
 import com.example.appstory.databinding.ActivityLoginBinding
 import com.example.appstory.ui.AuthViewModel
+import com.example.appstory.ui.custom.PasswordInputView
 import com.example.appstory.ui.password.ForgotPasswordActivity
 import com.example.appstory.ui.register.RegisterActivity
 import com.example.appstory.utils.Resource
@@ -24,6 +26,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
+    private lateinit var passwordInputView: PasswordInputView
     private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,33 +34,33 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        passwordInputView = binding.passwordInputView
+
         setupViews()
         setupObservers()
     }
 
     private fun setupViews() {
+        passwordInputView = binding.passwordInputView
+
         binding.logoImageView.startAnimation(
             AnimationUtils.loadAnimation(this, R.anim.logo_animation)
         )
 
-        binding.edLoginEmail.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validateEmail(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        binding.passwordInputView.addTextChangedListener { text ->
-            validatePassword(text)
+        binding.edLoginEmail.addTextChangedListener { text ->
+            validateEmail(text.toString())
         }
 
-        binding.passwordInputView.setErrorMessage(getString(R.string.error_password_length))
+        passwordInputView.setErrorMessage(getString(R.string.error_password_length))
+
+        passwordInputView.addTextChangedListener()
 
         binding.btnLogin.setOnClickListener { attemptLogin() }
+
         binding.btnRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
+
         binding.btnForgotPassword.setOnClickListener {
             startActivity(Intent(this, ForgotPasswordActivity::class.java))
         }
@@ -87,21 +90,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun validatePassword(password: String): Boolean {
-        return if (password.length < 8) {
-            binding.passwordInputView.setErrorMessage(getString(R.string.error_password_length))
-            false
-        } else {
-            binding.passwordInputView.setErrorMessage(null)
-            true
-        }
-    }
-
     private fun attemptLogin() {
         val email = binding.edLoginEmail.text.toString().trim()
-        val password = binding.passwordInputView.getText()
+        val password = passwordInputView.getText()
 
-        if (validateEmail(email) && validatePassword(password)) {
+        if (validateEmail(email) && passwordInputView.isValidPassword()) {
             authViewModel.loginUser(email, password)
         }
     }

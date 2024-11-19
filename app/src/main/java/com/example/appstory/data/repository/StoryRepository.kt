@@ -80,7 +80,6 @@ class StoryRepository @Inject constructor(
         }
     }
 
-
     fun getAllStories(token: String, page: Int, size: Int): LiveData<Resource<List<StoryEntity>>> {
         val result = MediatorLiveData<Resource<List<StoryEntity>>>()
         result.value = Resource.Loading()
@@ -152,6 +151,66 @@ class StoryRepository @Inject constructor(
                 else -> Resource.Error("Error: ${e.message}")
             }
         }
+    }
+
+    fun getStoriesWithLocation(token: String): LiveData<Resource<List<StoryEntity>>> {
+        val result = MediatorLiveData<Resource<List<StoryEntity>>>()
+        result.value = Resource.Loading()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.getAllStories(
+                    token = "Bearer $token",
+                    location = 1
+                )
+
+                withContext(Dispatchers.Main) {
+                    when (response.code()) {
+                        200 -> {
+                            val stories = response.body()?.listStory?.mapNotNull { story ->
+                                if (story.lat != null && story.lon != null) {
+                                    story.toStoryEntity()
+                                } else null
+                            } ?: emptyList()
+
+                            if (stories.isNotEmpty()) {
+                                storyDao.clearAllStories()
+                                storyDao.insertStories(stories)
+                            }
+
+                            result.value = Resource.Success(stories)
+                        }
+                        401 -> {
+                            result.value = Resource.Error("Unauthorized access. Please login again")
+                            sessionManager.clearSession()
+                        }
+                        else -> {
+                            val cachedStories = storyDao.getAllStories().firstOrNull()
+                            if (!cachedStories.isNullOrEmpty()) {
+                                result.value = Resource.Success(cachedStories)
+                            } else {
+                                result.value = Resource.Error("Failed to load stories: ${response.message()}")
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    when (e) {
+                        is IOException -> {
+                            val cachedStories = storyDao.getAllStories().firstOrNull()
+                            if (!cachedStories.isNullOrEmpty()) {
+                                result.value = Resource.Success(cachedStories)
+                            } else {
+                                result.value = Resource.Error("Network error. Please check your connection")
+                            }
+                        }
+                        else -> result.value = Resource.Error("Error: ${e.message}")
+                    }
+                }
+            }
+        }
+        return result
     }
 
     val isLoggedIn: LiveData<Boolean> = MutableLiveData(sessionManager.isLoggedIn())

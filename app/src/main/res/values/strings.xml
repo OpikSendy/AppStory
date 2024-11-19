@@ -44,5 +44,10 @@
     <string name="error_password_length">Password harus minimal 8 karakter</string>
     <string name="error_empty_name">Nama tidak boleh kosong</string>
     <string name="story_detail">Detail Story</string>
+    <string name="google_maps_key">AIzaSyDm2VrCm3MrYDlO5F-Id8B0fO9FWkIQYoE</string>
+    <string name="story_location">Story Location</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="data_kosong">Data Kosong</string>
+    <string name="kesalahan">Terjadi Kesalahan</string>
 
 </resources>

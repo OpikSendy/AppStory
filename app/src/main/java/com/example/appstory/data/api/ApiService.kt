@@ -59,5 +59,4 @@ interface ApiService {
 
     @POST("auth/reset-password")
     fun sendResetPasswordLink(@Body email: String): Call<ResetPasswordResponse>
-
 }

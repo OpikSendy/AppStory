@@ -23,6 +23,9 @@ class StoryViewModel @Inject constructor(
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
+    private val _stories = MutableLiveData<Resource<List<StoryEntity>>>()
+    val stories: LiveData<Resource<List<StoryEntity>>> = _stories
+
     private val _storyList = MutableLiveData<Resource<List<StoryEntity>>>()
     val storyList: LiveData<Resource<List<StoryEntity>>> get() = _storyList
 
@@ -99,5 +102,4 @@ class StoryViewModel @Inject constructor(
             _addStoryStatus.value = Resource.Error("Token is missing or expired")
         }
     }
-
 }

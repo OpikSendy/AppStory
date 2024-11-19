@@ -1,4 +1,4 @@
-package com.example.appstory
+package com.example.appstory.ui.storylist
 
 import android.content.Intent
 import android.os.Bundle
@@ -15,13 +15,12 @@ import com.example.appstory.ui.StoryViewModel
 import com.example.appstory.ui.adapter.StoryAdapter
 import com.example.appstory.ui.addstory.AddStoryActivity
 import com.example.appstory.ui.login.LoginActivity
-import com.example.appstory.ui.maps.MapActivity
 import com.example.appstory.ui.storydetail.StoryDetailActivity
 import com.example.appstory.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class StoryListActivity : AppCompatActivity() {
     private val storyViewModel: StoryViewModel by viewModels()
     private val authViewModel: AuthViewModel by viewModels()
     private lateinit var binding: ActivityMainBinding
@@ -43,7 +42,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.apply {
-            rvStories.layoutManager = LinearLayoutManager(this@MainActivity)
+            rvStories.layoutManager = LinearLayoutManager(this@StoryListActivity)
             rvStories.adapter = storyAdapter
 
             actionLogout.setOnClickListener {
@@ -51,11 +50,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             fabAdd.setOnClickListener {
-                startActivity(Intent(this@MainActivity, AddStoryActivity::class.java))
-            }
-
-            fabMap.setOnClickListener {
-                startActivity(Intent(this@MainActivity, MapActivity::class.java))
+                startActivity(Intent(this@StoryListActivity, AddStoryActivity::class.java))
             }
         }
     }

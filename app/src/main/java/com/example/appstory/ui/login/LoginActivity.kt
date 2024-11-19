@@ -4,8 +4,6 @@ package com.example.appstory.ui.login
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.viewModels
